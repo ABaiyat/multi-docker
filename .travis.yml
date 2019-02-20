@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t amaanbaiyat/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run amaanbaiyat/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t amaanbaiyat/multi-client ./client
+  - docker build -t amaanbaiyat/multi-nginx ./nginx
+  - docker build -t amaanbaiyat/multi-server ./server
+  - docker build -t amaanbaiyat/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push amaanbaiyat/multi-client
+  - docker push amaanbaiyat/multi-nginx
+  - docker push amaanbaiyat/multi-server
+  - docker push amaanbaiyat/multi-worker
